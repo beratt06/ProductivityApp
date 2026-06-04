@@ -1,0 +1,107 @@
+@page
+@model TasksModel
+@{
+    ViewData["Title"] = "Görevler";
+}
+
+<section class="page-heading">
+    <div>
+        <h1>Görevler</h1>
+        <p>Görevlerini ekle, takip et ve tamamla.</p>
+    </div>
+    <form method="post" asp-page-handler="Undo">
+        <button class="secondary-action" type="submit" disabled="@(!Model.CanUndo)">Son Silineni Geri Al</button>
+    </form>
+</section>
+
+<section class="panel">
+    <form method="get" class="filter-bar">
+        <input asp-for="Search" data-live-filter-target="#tasksTable" placeholder="Görev ara..." />
+        <select asp-for="Priority" asp-items="Model.PriorityOptions">
+            <option value="">Tüm öncelikler</option>
+        </select>
+        <select asp-for="Status" asp-items="Model.StatusOptions">
+            <option value="">Tüm durumlar</option>
+        </select>
+        <button class="secondary-action" type="submit">Filtrele</button>
+    </form>
+
+    <form method="post" asp-page-handler="Add" class="entry-form">
+        <div>
+            <label asp-for="Input.Title">Görev başlığı</label>
+            <input asp-for="Input.Title" placeholder="Örn: Rapor yaz..." />
+            <span asp-validation-for="Input.Title"></span>
+        </div>
+        <div>
+            <label asp-for="Input.Priority">Öncelik</label>
+            <select asp-for="Input.Priority" asp-items="Model.PriorityOptions"></select>
+        </div>
+        <div>
+            <label asp-for="Input.Status">Durum</label>
+            <select asp-for="Input.Status" asp-items="Model.StatusOptions"></select>
+        </div>
+        <div>
+            <label asp-for="Input.DueDate">Son tarih</label>
+            <input asp-for="Input.DueDate" type="date" />
+        </div>
+        <button class="primary-action" type="submit">Görev Ekle</button>
+    </form>
+</section>
+
+<section class="panel table-panel">
+    <table id="tasksTable" class="data-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Görev</th>
+                <th>Öncelik</th>
+                <th>Durum</th>
+                <th>Son Tarih</th>
+                <th>İşlem</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Tasks.Count == 0)
+            {
+                <tr>
+                    <td colspan="6" class="empty-state">Kayıt bulunamadı.</td>
+                </tr>
+            }
+            @for (var index = 0; index < Model.Tasks.Count; index++)
+            {
+                var task = Model.Tasks[index];
+                var updateForm = $"update-{task.Id}";
+                var deleteForm = $"delete-{task.Id}";
+                <tr class="js-hover">
+                    <td>@(index + 1)</td>
+                    <td>
+                        <input form="@updateForm" name="title" value="@task.Title" />
+                    </td>
+                    <td>
+                        <select form="@updateForm" name="priority" asp-items="Model.PriorityOptions" data-selected="@task.Priority"></select>
+                    </td>
+                    <td>
+                        <select form="@updateForm" name="status" asp-items="Model.StatusOptions" data-selected="@task.Status"></select>
+                    </td>
+                    <td>
+                        <input form="@updateForm" name="dueDate" type="date" value="@task.DueDate.ToString("yyyy-MM-dd")" />
+                    </td>
+                    <td class="row-actions">
+                        <form id="@updateForm" method="post" asp-page-handler="Update">
+                            <input type="hidden" name="id" value="@task.Id" />
+                        </form>
+                        <form id="@deleteForm" method="post" asp-page-handler="Delete">
+                            <input type="hidden" name="id" value="@task.Id" />
+                        </form>
+                        <button form="@updateForm" class="icon-button save" type="submit" title="Güncelle">✓</button>
+                        <button form="@deleteForm" class="icon-button danger" type="submit" title="Sil">×</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

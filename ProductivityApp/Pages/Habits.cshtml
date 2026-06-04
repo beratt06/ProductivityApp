@@ -1,0 +1,65 @@
+@page
+@model HabitsModel
+@{
+    ViewData["Title"] = "Alışkanlıklar";
+}
+
+<section class="page-heading">
+    <div>
+        <h1>Alışkanlıklar</h1>
+        <p>Seri oluştur, günlük ilerlemeyi takip et.</p>
+    </div>
+</section>
+
+<section class="panel">
+    <form method="post" asp-page-handler="Add" class="entry-form habit-entry">
+        <div>
+            <label asp-for="Input.Name">Alışkanlık adı</label>
+            <input asp-for="Input.Name" placeholder="Örn: Sabah egzersizi..." />
+            <span asp-validation-for="Input.Name"></span>
+        </div>
+        <button class="primary-action" type="submit">Alışkanlık Ekle</button>
+    </form>
+</section>
+
+<section class="habit-grid">
+    @if (Model.Habits.Count == 0)
+    {
+        <div class="panel empty-state">Henüz alışkanlık yok.</div>
+    }
+
+    @foreach (var habit in Model.Habits)
+    {
+        var completedToday = Model.CompletedToday(habit);
+        <article class="habit-card js-hover @(completedToday ? "habit-complete" : "")">
+            <form id="delete-habit-@habit.Id" method="post" asp-page-handler="Delete">
+                <input type="hidden" name="id" value="@habit.Id" />
+            </form>
+            <div class="habit-title">
+                <h2>@habit.Name</h2>
+                <span class="flame" aria-label="Seri">🔥</span>
+            </div>
+            <div class="streak-badge">
+                <span class="flame mini" aria-hidden="true">🔥</span>
+                <strong>@habit.Streak</strong>
+                <span>gün seri</span>
+            </div>
+            <span>Son: @(habit.LastCompletedOn?.ToString("dd.MM.yyyy") ?? "-")</span>
+            @if (completedToday)
+            {
+                <span class="complete-note">Bugün tamamlandı</span>
+            }
+            <div class="habit-actions">
+                <form method="post" asp-page-handler="Complete">
+                    <input type="hidden" name="id" value="@habit.Id" />
+                    <button class="secondary-action success" type="submit" disabled="@completedToday">Yapıldı</button>
+                </form>
+                <button form="delete-habit-@habit.Id" class="icon-button danger" type="submit" title="Sil">×</button>
+            </div>
+        </article>
+    }
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

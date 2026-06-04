@@ -1,0 +1,75 @@
+@page
+@model FocusModel
+@{
+    ViewData["Title"] = "Odak";
+}
+
+<section class="page-heading">
+    <div>
+        <h1>Odak Modu</h1>
+        <p>Pomodoro tekniğiyle verimli çalış.</p>
+    </div>
+</section>
+
+<section class="focus-stats">
+    <article class="metric-card focus-stat js-hover">
+        <span>Bugünkü Odak</span>
+        <strong>@Model.TodayFocusedMinutes dk</strong>
+    </article>
+    <article class="metric-card focus-stat js-hover">
+        <span>Bu Hafta</span>
+        <strong>@Model.WeekFocusedMinutes dk</strong>
+    </article>
+    <article class="metric-card focus-stat js-hover">
+        <span>Bugünkü Seans</span>
+        <strong>@Model.TodaySessionCount</strong>
+    </article>
+</section>
+
+<section class="focus-layout">
+    <div class="panel timer-panel">
+        <div class="timer-ring">
+            <strong id="timerDisplay">25:00</strong>
+            <span>Hazır</span>
+        </div>
+        <div class="timer-actions">
+            <button class="primary-action" id="startTimer" type="button">Başlat</button>
+            <button class="secondary-action" id="resetTimer" type="button">Sıfırla</button>
+        </div>
+        <div class="duration-tabs" role="group" aria-label="Süre seçimi">
+            <button class="active" type="button" data-minutes="25">25 dk</button>
+            <button type="button" data-minutes="45">45 dk</button>
+            <button type="button" data-minutes="60">60 dk</button>
+        </div>
+        <div class="custom-duration">
+            <label for="customMinutes">Özel dakika</label>
+            <div class="custom-duration-row">
+                <input id="customMinutes" type="number" min="1" max="180" inputmode="numeric" placeholder="Örn: 32" />
+                <button class="secondary-action" id="applyCustomDuration" type="button">Uygula</button>
+            </div>
+        </div>
+        <form id="focusCompleteForm" method="post" asp-page-handler="Complete">
+            <input id="durationMinutes" name="durationMinutes" type="hidden" value="25" />
+        </form>
+    </div>
+
+    <div class="panel">
+        <div class="panel-header">
+            <h2>Seans Geçmişi</h2>
+            <span class="pill">@Model.Sessions.Count seans</span>
+        </div>
+        <div class="compact-list">
+            @if (Model.Sessions.Count == 0)
+            {
+                <p class="empty-state">Henüz tamamlanan seans yok.</p>
+            }
+            @foreach (var session in Model.Sessions)
+            {
+                <div class="compact-item js-hover">
+                    <span>@session.DurationMinutes dakika</span>
+                    <small>@session.CompletedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</small>
+                </div>
+            }
+        </div>
+    </div>
+</section>

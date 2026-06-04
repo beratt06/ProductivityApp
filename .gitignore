@@ -1,0 +1,10 @@
+.dotnet/
+.dotnet_home/
+.nuget/
+bin/
+obj/
+app.db
+*.db
+*.db-shm
+*.db-wal
+.DS_Store

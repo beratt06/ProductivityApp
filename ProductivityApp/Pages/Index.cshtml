@@ -1,0 +1,73 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<section class="page-heading">
+    <div>
+        <h1>Hoş geldin, @Model.DisplayName</h1>
+        <p>@DateTime.Today.ToString("dd MMMM yyyy dddd")</p>
+    </div>
+</section>
+
+<section class="summary-grid">
+    <article class="metric-card accent-green js-hover">
+        <span>Aktif Görev</span>
+        <strong>@Model.Summary["activeTasks"]</strong>
+    </article>
+    <article class="metric-card accent-amber js-hover">
+        <span>Alışkanlık</span>
+        <strong>@Model.Summary["habits"]</strong>
+    </article>
+    <article class="metric-card accent-rose js-hover">
+        <span>Bugünkü Odak</span>
+        <strong>@Model.Summary["todayFocusMinutes"] dk</strong>
+    </article>
+    <article class="metric-card accent-violet js-hover">
+        <span>Maks. Seri</span>
+        <strong>🔥 @Model.Summary["maxStreak"]</strong>
+    </article>
+</section>
+
+<section class="dashboard-grid">
+    <div class="panel">
+        <div class="panel-header">
+            <h2>Son Görevler</h2>
+            <a asp-page="/Tasks">Tümünü Gör</a>
+        </div>
+        <div class="compact-list">
+            @if (Model.RecentTasks.Count == 0)
+            {
+                <p class="empty-state">Henüz görev yok.</p>
+            }
+            @foreach (var task in Model.RecentTasks)
+            {
+                <div class="compact-item js-hover">
+                    <span>@task.Title</span>
+                    <small>@IndexModel.StatusLabel(task.Status)</small>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-header">
+            <h2>Alışkanlık Serileri</h2>
+            <a asp-page="/Habits">Tümünü Gör</a>
+        </div>
+        <div class="compact-list">
+            @if (Model.Habits.Count == 0)
+            {
+                <p class="empty-state">Henüz alışkanlık yok.</p>
+            }
+            @foreach (var habit in Model.Habits)
+            {
+                <div class="compact-item js-hover">
+                    <span>@habit.Name</span>
+                    <small>🔥 @habit.Streak gün</small>
+                </div>
+            }
+        </div>
+    </div>
+</section>

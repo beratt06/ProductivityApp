@@ -1,0 +1,39 @@
+@page
+@model LoginModel
+@{
+    ViewData["Title"] = "Giriş";
+}
+
+<section class="login-panel">
+    <div class="auth-card">
+        <div class="auth-mark">P</div>
+        <h1>ProductivityApp</h1>
+        <p>Verimli bir gün için hazır mısın?</p>
+
+        @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+        {
+            <div class="alert alert-danger">@Model.ErrorMessage</div>
+        }
+
+        <form method="post" class="stack-form">
+            <label asp-for="Input.UserName">Kullanıcı adı</label>
+            <input asp-for="Input.UserName" autocomplete="username" autofocus />
+            <span asp-validation-for="Input.UserName"></span>
+
+            <label asp-for="Input.Password">Şifre</label>
+            <input asp-for="Input.Password" type="password" autocomplete="current-password" />
+            <span asp-validation-for="Input.Password"></span>
+
+            <button class="primary-action" type="submit">Giriş Yap</button>
+        </form>
+
+        <div class="auth-footer">
+            <span>Demo: admin / admin123</span>
+            <a asp-page="/Register">Yeni hesap oluştur</a>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

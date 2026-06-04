@@ -1,0 +1,60 @@
+﻿@{
+    var displayName = Context.Session.GetString("DisplayName");
+    var isAuthenticated = !string.IsNullOrWhiteSpace(displayName);
+    var currentPage = ViewContext.RouteData.Values["page"]?.ToString() ?? string.Empty;
+    string NavClass(string page) => string.Equals(currentPage, page, StringComparison.OrdinalIgnoreCase) ? "active" : string.Empty;
+}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - ProductivityApp</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/ProductivityApp.styles.css" asp-append-version="true" />
+</head>
+<body class="@(isAuthenticated ? "app-body" : "auth-body")">
+    @if (isAuthenticated)
+    {
+        <div class="app-shell">
+            <aside class="sidebar" aria-label="Ana navigasyon">
+                <a class="brand" asp-page="/Index">
+                    <span class="brand-mark">P</span>
+                    <span>ProductivityApp</span>
+                </a>
+                <nav class="side-nav">
+                    <a class="@NavClass("/Index")" asp-page="/Index">Dashboard</a>
+                    <a class="@NavClass("/Tasks")" asp-page="/Tasks">Görevler</a>
+                    <a class="@NavClass("/Habits")" asp-page="/Habits">Alışkanlıklar</a>
+                    <a class="@NavClass("/Focus")" asp-page="/Focus">Odak</a>
+                </nav>
+                <div class="sidebar-footer">
+                    <div class="user-chip">
+                        <span>@displayName![0]</span>
+                        <strong>@displayName</strong>
+                    </div>
+                    <form method="post" asp-page="/Logout">
+                        <button class="icon-button" type="submit" title="Çıkış yap" aria-label="Çıkış yap">↪</button>
+                    </form>
+                </div>
+            </aside>
+            <main class="content" role="main">
+                @RenderBody()
+            </main>
+        </div>
+    }
+    else
+    {
+        <main class="auth-shell" role="main">
+            @RenderBody()
+        </main>
+    }
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
