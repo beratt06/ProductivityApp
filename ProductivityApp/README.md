@@ -4,12 +4,13 @@ Web tabanlı kişisel verimlilik ve zaman yönetimi uygulaması. Proje ASP.NET C
 
 ## Kurulum ve Çalıştırma
 
-Bu bilgisayarda .NET SDK sistem geneline kurulu değildi. Admin şifresi gerektirmemesi için .NET 8 SDK proje kökündeki `.dotnet` klasörüne yerel olarak kuruldu.
+Projeyi çalıştırmak için bilgisayarda .NET 8 SDK kurulu olmalıdır. Kurulumdan sonra terminalde proje klasörüne girip aşağıdaki komutlar çalıştırılabilir.
 
 ```bash
-cd "/Users/karatay/Documents/Görsel programlama/ProductivityApp"
-DOTNET_CLI_HOME="$PWD/../.dotnet_home" NUGET_PACKAGES="$PWD/.nuget/packages" ../.dotnet/dotnet build
-ASPNETCORE_ENVIRONMENT=Development DOTNET_CLI_HOME="$PWD/../.dotnet_home" NUGET_PACKAGES="$PWD/.nuget/packages" ../.dotnet/dotnet bin/Debug/net8.0/ProductivityApp.dll
+cd ProductivityApp
+dotnet restore
+dotnet build
+dotnet run
 ```
 
 Uygulama adresi:
@@ -28,8 +29,25 @@ Kullanıcı adı: admin
 Veritabanı ilk çalıştırmada otomatik oluşur:
 
 ```text
-ProductivityApp/app.db
+app.db
 ```
+
+## Güvenlik ve Gizlilik
+
+Projeye kişisel bilgisayar yolu, kullanıcı adı, e-posta, token veya özel anahtar eklenmemiştir. Veritabanı dosyası ve yerel çalışma dosyaları GitHub'a gönderilmez.
+
+Git dışında bırakılan dosyalar:
+
+- `.dotnet/`
+- `.dotnet_home/`
+- `.nuget/`
+- `bin/`
+- `obj/`
+- `app.db`
+- `*.db`
+- `*.db-shm`
+- `*.db-wal`
+- `.DS_Store`
 
 ## Özellikler
 
@@ -69,4 +87,4 @@ Doğrulanan senaryolar:
 - Pomodoro özel dakika ve seans kaydı çalışıyor
 - Login ve dashboard ekranları görsel olarak kontrol edildi
 
-Not: Sandbox içinde Kestrel port bağlama izni kısıtlı olduğu için Codex çalıştırırken sunucu dış sandbox izniyle başlatıldı. Normal terminalde aynı komut doğrudan çalışır.
+Not: Uygulama normal terminalde `dotnet run` komutuyla çalışır.
