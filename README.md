@@ -7,6 +7,7 @@ ASP.NET Core Razor Pages ile hazırlanmış kişisel verimlilik ve odak takip uy
 Bilgisayarda .NET 8 SDK kurulu olmalıdır.
 
 ```bash
+cd ProductivityApp
 dotnet restore
 dotnet build
 dotnet run
@@ -29,4 +30,4 @@ Veritabanı ilk çalıştırmada otomatik olarak `app.db` dosyasıyla oluşur.
 
 ## Ekran Görüntüsü
 
-![Odak modu ekranı](docs/screenshots/focus.png)
+![Odak modu ekranı](ProductivityApp/docs/screenshots/focus.png)
