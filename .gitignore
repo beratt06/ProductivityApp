@@ -22,10 +22,9 @@ app.db
 .nuget/
 
 # Output / Build artifacts (avoid committing large binaries to git)
-*.zip
-*.docx
 *.exe
 *.dll
 *.pdb
 *.config
 *.json.endpoints
+
