@@ -1,0 +1,105 @@
+================================================================================
+            SİSTEM VE KULLANICI ARAYÜZLERİNİN AYRI AYRI ANLATIMI
+================================================================================
+
+[RAPORDA NEREYE KOYULMALI?]
+Bu metni, hazırladığımız Word raporundaki (proje_raporu_hazir.docx) 
+"4. KULLANICI ARAYÜZLERİNİN DETAYLI ANLATIMI" bölümünün yerine veya altına
+doğrudan yapıştırabilirsiniz. Hocanızın "Sistem ile kullanıcı arayüzlerinin
+ayrı ayrı anlatımı" maddesini tam olarak karşılamaktadır.
+
+--------------------------------------------------------------------------------
+BÖLÜM 1: KULLANICI ARAYÜZLERİ (FRONTEND / UI) ANLATIMI
+--------------------------------------------------------------------------------
+Bu kısım, kullanıcının uygulama içerisinde doğrudan etkileşime girdiği görsel 
+tasarımları, sayfa yerleşimlerini ve arayüz elemanlarını kapsar. Uygulama genelinde
+koyu tema (Dark Mode) ve cam şeffaflığı efekti sunan modern "Glassmorphism" 
+tasarım dili benimsenmiştir.
+
+1. Üyelik Giriş & Kayıt Ekranları (Login / Register)
+   * Arayüz Elemanları: Ortalanmış giriş kartı, kullanıcı adı ve şifre giriş 
+     alanları, kayıt ol / giriş yap yönlendirme butonları ve görsel uyarı panelleri.
+   * Görsel Etkileşim: Form alanlarındaki veriler eksik veya hatalı girildiğinde 
+     kırmızı uyarı kutuları (Validation Summary) belirir.
+
+2. Yönetim Paneli (Dashboard)
+   * Arayüz Elemanları: Karşılama başlığı, sol tarafta dikey menü (Sidebar) ve 
+     ana gövdede iki ana uyarı kutusu (Akıllı Hatırlatıcılar).
+   * Görsel Etkileşim: Son teslim tarihine 1 gün kalan görevler sarı etiketle, 
+     bugün tamamlanması gereken ancak yapılmayan alışkanlıklar ise kırmızı renkli 
+     uyarı kartlarıyla anlık olarak bu ekranda gösterilir.
+
+3. Görev Yönetim Sayfası (Tasks)
+   * Arayüz Elemanları: Görev başlığı, açıklaması, kategori (İş, Kişisel vb.) ve 
+     tarih seçilebilen form ekleme kartı, görev arama çubuğu ve görevlerin listelendiği
+     detaylı veri tablosu.
+   * Görsel Etkileşim: Tablo içerisindeki görevlerin durum (Örn: Bekliyor) veya 
+     öncelik (Örn: Yüksek) alanlarına tıklandığında anında seçim menüsü açılır. 
+     Görev silindiğinde ekranın en üstünde yeşil bir "Geri Al" bildirim çubuğu çıkar.
+
+4. Alışkanlık Takip Sayfası (Habits)
+   * Arayüz Elemanları: Alışkanlık ismi, emoji simgesi ve haftalık hedef gün 
+     frekansının girildiği form kartı ile alışkanlıkların listelendiği kart tasarımları.
+   * Görsel Etkileşim: Her alışkanlık kartında tamamlanma oranını gösteren bir 
+     yüzde çubuğu, güncel seri (Streak) sayısını gösteren bir alev simgesi ve 
+     günlük tamamlama/iptal butonları bulunur.
+
+5. Odaklanma Modu Sayfası (Focus / Pomodoro)
+   * Arayüz Elemanları: Ekranın ortasında yer alan dairesel geri sayım animasyonu, 
+     zamanlayıcıyı kontrol eden Başlat, Duraklat ve Sıfırla butonları.
+   * Görsel Etkileşim: Süre azaldıkça dairesel SVG çubuğu saat yönünde azalarak 
+     kullanıcıya zaman akışını görsel olarak hissettirir.
+
+6. İstatistik Rapor Sayfası (Stats)
+   * Arayüz Elemanları: Haftalık odaklanma sürelerinin gün gün gösterildiği dikey 
+     sütun grafik alanı ve son 30 günün alışkanlık geçmişini gösteren takvim alanı.
+   * Görsel Etkileşim: Grafiklerin üzerine gelindiğinde (hover) odak süreleri 
+     ipucu balonuyla belirir. Isı Haritası (Heatmap) üzerindeki kareler, o gün 
+     tamamlanan alışkanlık sıklığına göre açıktan koyu yeşile doğru renk değiştirir.
+
+
+--------------------------------------------------------------------------------
+BÖLÜM 2: SİSTEM VE ARKA PLAN İŞLEYİŞİ (BACKEND / SYSTEM) ANLATIMI
+--------------------------------------------------------------------------------
+Bu kısım, kullanıcının görmediği, sunucu tarafında (Server-side) çalışan C# 
+kodlarını, veri tabanı sorgularını (EF Core & SQLite) ve sistem algoritmalarını kapsar.
+
+1. Oturum Güvenliği ve Yetkilendirme Mekanizması
+   * Arka Plan İşleyişi: Kullanıcı kayıt olduğunda şifresi düz metin olarak değil,
+     "PasswordService" içinde PBKDF2 kriptografik algoritmasıyla tuzlanarak 
+     hash'lenir. Giriş onaylandığında, kullanıcının ID'si sunucu belleğindeki 
+     "Session State" (Oturum Durumu) üzerinde saklanır. Sayfalara istek atıldığında
+     "AppPageModel" taban sınıfı oturum açılıp açılmadığını denetler.
+
+2. Akıllı Hatırlatma Algoritmaları
+   * Arka Plan İşleyişi: Dashboard sayfası yüklenirken, C# veritabanındaki 
+     "Tasks" tablosundan "Status != Completed" ve "DueDate == Bugün/Yarın" olan 
+     kayıtları sorgular. Benzer şekilde, "HabitCompletions" tablosunu tarayarak 
+     bugün tarihiyle eşleşmeyen ve yapılması gereken alışkanlık kimliklerini bulur 
+     ve ön yüze listeler.
+
+3. Sayfa Yenilemeden Veri Güncelleme (AJAX & Fetch Handlers)
+   * Arka Plan İşleyişi: Kullanıcı görev tablosunda bir durumu değiştirdiğinde,
+     JavaScript Fetch API tetiklenir ve sunucuya asenkron HTTP POST isteği gönderir. 
+     Sunucudaki "OnPostUpdateAsync" metodu gelen ID bilgisini doğrular, EF Core 
+     aracılığıyla SQLite "Tasks" tablosundaki kaydın durumunu günceller ve 
+     "SaveChangesAsync" çağrısı ile diske yazar. Sayfa yeniden yüklenmez.
+
+4. Geri Alma (Undo) Yığın Yönetimi
+   * Arka Plan İşleyişi: Bir görev silindiğinde, veritabanında görevin "IsDeleted"
+     alanı "true" yapılarak soft-delete uygulanır. Silinen görevin benzersiz ID'si
+     bellekteki "UndoStackService" içindeki bir LIFO (Last-In-First-Out) Yığınına
+     (Stack) kaydedilir. Kullanıcı geri alma butonuna bastığında C# yığından son ID'yi
+     çıkartır (Pop) ve veritabanındaki "IsDeleted" değerini tekrar "false" yapar.
+
+5. Alışkanlık Seri (Streak) Hesaplama Mantığı
+   * Arka Plan İşleyişi: Kullanıcı alışkanlığı tamamladığında, sistem veritabanındaki
+     en son tamamlanma tarihini sorgular. Eğer son tamamlanma tarihi dünün tarihine 
+     eşitse, seriyi (Streak) 1 artırır. Eğer son tamamlama tarihi dünden daha eskiyse,
+     günlük rutin aksatıldığı için seriyi sıfırlar ve 1'den yeniden başlatır.
+
+6. İstatistik Veri Yapılandırması ve Grafikler
+   * Arka Plan İşleyişi: Grafik sayfası istendiğinde, sistem kullanıcının son 
+     7 günlük odak oturumlarını veritabanından çeker, gün gün gruplayarak toplar 
+     ve bu C# verisini JavaScript'in okuyabileceği JSON formatına serileştirir.
+================================================================================

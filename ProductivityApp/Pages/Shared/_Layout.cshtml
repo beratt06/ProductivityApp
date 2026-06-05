@@ -1,4 +1,4 @@
-﻿@{
+@{
     var displayName = Context.Session.GetString("DisplayName");
     var isAuthenticated = !string.IsNullOrWhiteSpace(displayName);
     var currentPage = ViewContext.RouteData.Values["page"]?.ToString() ?? string.Empty;
@@ -10,6 +10,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - ProductivityApp</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/ProductivityApp.styles.css" asp-append-version="true" />
@@ -24,16 +27,27 @@
                     <span>ProductivityApp</span>
                 </a>
                 <nav class="side-nav">
-                    <a class="@NavClass("/Index")" asp-page="/Index">Dashboard</a>
-                    <a class="@NavClass("/Tasks")" asp-page="/Tasks">Görevler</a>
-                    <a class="@NavClass("/Habits")" asp-page="/Habits">Alışkanlıklar</a>
-                    <a class="@NavClass("/Focus")" asp-page="/Focus">Odak</a>
+                    <a class="@NavClass("/Index")" asp-page="/Index">
+                        <span class="nav-icon">🏠</span> Dashboard
+                    </a>
+                    <a class="@NavClass("/Tasks")" asp-page="/Tasks">
+                        <span class="nav-icon">✅</span> Görevler
+                    </a>
+                    <a class="@NavClass("/Habits")" asp-page="/Habits">
+                        <span class="nav-icon">⚡</span> Alışkanlıklar
+                    </a>
+                    <a class="@NavClass("/Focus")" asp-page="/Focus">
+                        <span class="nav-icon">⏱</span> Odak
+                    </a>
+                    <a class="@NavClass("/Stats")" asp-page="/Stats">
+                        <span class="nav-icon">📊</span> İstatistikler
+                    </a>
                 </nav>
                 <div class="sidebar-footer">
-                    <div class="user-chip">
+                    <a class="user-chip @NavClass("/Profile")" asp-page="/Profile" title="Profil ayarları">
                         <span>@displayName![0]</span>
                         <strong>@displayName</strong>
-                    </div>
+                    </a>
                     <form method="post" asp-page="/Logout">
                         <button class="icon-button" type="submit" title="Çıkış yap" aria-label="Çıkış yap">↪</button>
                     </form>

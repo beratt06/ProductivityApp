@@ -11,48 +11,97 @@
     </div>
 </section>
 
+<section class="stat-grid">
+    <article class="metric-card accent-primary js-hover">
+        <span>Aktif Alışkanlık</span>
+        <strong>@Model.ActiveHabitsCount</strong>
+        <small class="muted">Bugün @Model.CompletedTodayCount tamamlandı</small>
+    </article>
+    <article class="metric-card accent-accent js-hover">
+        <span>Haftalık Tamamlama</span>
+        <strong>@Model.WeeklyCompletionsCount</strong>
+        <small class="muted">Son 7 gün</small>
+    </article>
+    <article class="metric-card accent-blue js-hover">
+        <span>En Uzun Seri</span>
+        <strong>@Model.BestStreak gün</strong>
+        <small class="muted">En iyi performans</small>
+    </article>
+    <article class="metric-card accent-rose js-hover">
+        <span>Bugün</span>
+        <strong>@Model.CompletedTodayCount</strong>
+        <small class="muted">Tamamlanan</small>
+    </article>
+</section>
+
 <section class="panel">
-    <form method="post" asp-page-handler="Add" class="entry-form habit-entry">
+    <form method="post" asp-page-handler="Add" class="habit-add-form">
         <div>
-            <label asp-for="Input.Name">Alışkanlık adı</label>
+            <label asp-for="Input.Emoji">Emoji</label>
+            <input asp-for="Input.Emoji" placeholder="⚡" maxlength="4" class="emoji-input" />
+        </div>
+        <div>
+            <label asp-for="Input.Name">Alışkanlık adı *</label>
             <input asp-for="Input.Name" placeholder="Örn: Sabah egzersizi..." />
             <span asp-validation-for="Input.Name"></span>
         </div>
-        <button class="primary-action" type="submit">Alışkanlık Ekle</button>
+        <div>
+            <label asp-for="Input.FrequencyPerWeek">Haftalık hedef</label>
+            <select asp-for="Input.FrequencyPerWeek">
+                <option value="1">Haftada 1</option>
+                <option value="2">Haftada 2</option>
+                <option value="3">Haftada 3</option>
+                <option value="4">Haftada 4</option>
+                <option value="5">Haftada 5</option>
+                <option value="6">Haftada 6</option>
+                <option value="7" selected>Her gün</option>
+            </select>
+        </div>
+        <button class="primary-action" type="submit" style="align-self:end;">Alışkanlık Ekle</button>
     </form>
 </section>
 
 <section class="habit-grid">
     @if (Model.Habits.Count == 0)
     {
-        <div class="panel empty-state">Henüz alışkanlık yok.</div>
+        <div class="panel empty-state">Henüz alışkanlık yok. Yukarıdan ekleyebilirsin!</div>
     }
 
     @foreach (var habit in Model.Habits)
     {
         var completedToday = Model.CompletedToday(habit);
+        var weeklyCount = Model.WeeklyCounts.GetValueOrDefault(habit.Id);
+        var weeklyRate = Model.WeeklyRates.GetValueOrDefault(habit.Id);
+        var freq = habit.FrequencyPerWeek;
         <article class="habit-card js-hover @(completedToday ? "habit-complete" : "")">
             <form id="delete-habit-@habit.Id" method="post" asp-page-handler="Delete">
                 <input type="hidden" name="id" value="@habit.Id" />
             </form>
             <div class="habit-title">
-                <h2>@habit.Name</h2>
-                <span class="flame" aria-label="Seri">🔥</span>
+                <div class="habit-name-group">
+                    <span class="habit-emoji">@habit.Emoji</span>
+                    <h2>@habit.Name</h2>
+                </div>
+                <span class="streak-badge">🔥 @habit.Streak gün</span>
             </div>
-            <div class="streak-badge">
-                <span class="flame mini" aria-hidden="true">🔥</span>
-                <strong>@habit.Streak</strong>
-                <span>gün seri</span>
+            <div class="habit-meta">
+                <span>Son: @(habit.LastCompletedOn?.ToString("dd.MM.yyyy") ?? "-")</span>
+                <div class="habit-progress">
+                    <div class="habit-freq-row">
+                        <small>Bu hafta: @weeklyCount / @freq gün</small>
+                        <small class="muted">Hedef: Haftada @freq</small>
+                    </div>
+                    <div class="progress-meter" style="--value: @weeklyRate%;"><span></span></div>
+                </div>
             </div>
-            <span>Son: @(habit.LastCompletedOn?.ToString("dd.MM.yyyy") ?? "-")</span>
             @if (completedToday)
             {
-                <span class="complete-note">Bugün tamamlandı</span>
+                <span class="complete-note">✅ Bugün tamamlandı</span>
             }
             <div class="habit-actions">
                 <form method="post" asp-page-handler="Complete">
                     <input type="hidden" name="id" value="@habit.Id" />
-                    <button class="secondary-action success" type="submit" disabled="@completedToday">Yapıldı</button>
+                    <button class="secondary-action success" type="submit" disabled="@completedToday">✓ Yapıldı</button>
                 </form>
                 <button form="delete-habit-@habit.Id" class="icon-button danger" type="submit" title="Sil">×</button>
             </div>

@@ -23,6 +23,12 @@ public class TaskItem
     [Required, MaxLength(120)]
     public string Title { get; set; } = string.Empty;
 
+    [MaxLength(500)]
+    public string? Description { get; set; }
+
+    [MaxLength(40)]
+    public string? Category { get; set; }
+
     public TaskPriority Priority { get; set; } = TaskPriority.Normal;
 
     public TaskProgressStatus Status { get; set; } = TaskProgressStatus.Waiting;

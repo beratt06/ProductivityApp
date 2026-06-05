@@ -1,4 +1,4 @@
-﻿@page
+@page
 @model IndexModel
 @{
     ViewData["Title"] = "Dashboard";
@@ -6,31 +6,135 @@
 
 <section class="page-heading">
     <div>
-        <h1>Hoş geldin, @Model.DisplayName</h1>
-        <p>@DateTime.Today.ToString("dd MMMM yyyy dddd")</p>
+        <h1>Hoş geldin, @Model.DisplayName 👋</h1>
+        <p>@DateTime.Today.ToString("dd MMMM yyyy, dddd")</p>
+    </div>
+    <div class="page-actions">
+        <a class="secondary-action" asp-page="/Tasks">Görev Ekle</a>
+        <a class="secondary-action" asp-page="/Habits">Alışkanlık Ekle</a>
+        <a class="primary-action" asp-page="/Focus">⏱ Odak Başlat</a>
     </div>
 </section>
 
 <section class="summary-grid">
-    <article class="metric-card accent-green js-hover">
+    <article class="metric-card accent-primary js-hover">
         <span>Aktif Görev</span>
-        <strong>@Model.Summary["activeTasks"]</strong>
+        <strong>@Model.ActiveTasks</strong>
+        <small class="muted">Bugün @Model.DueTodayTasksCount görev planlı</small>
     </article>
-    <article class="metric-card accent-amber js-hover">
-        <span>Alışkanlık</span>
-        <strong>@Model.Summary["habits"]</strong>
+    <article class="metric-card accent-accent js-hover">
+        <span>Tamamlama Oranı</span>
+        <strong>%@Model.CompletionRate</strong>
+        <div class="progress-meter" style="--value: @Model.CompletionRate%;"><span></span></div>
+    </article>
+    <article class="metric-card accent-blue js-hover">
+        <span>Bugünkü Odak</span>
+        <strong>@Model.TodayFocusMinutes dk</strong>
+        <small class="muted">Bu hafta @Model.WeekFocusMinutes dk</small>
     </article>
     <article class="metric-card accent-rose js-hover">
-        <span>Bugünkü Odak</span>
-        <strong>@Model.Summary["todayFocusMinutes"] dk</strong>
-    </article>
-    <article class="metric-card accent-violet js-hover">
-        <span>Maks. Seri</span>
-        <strong>🔥 @Model.Summary["maxStreak"]</strong>
+        <span>En Uzun Seri</span>
+        <strong>@Model.MaxStreak gün</strong>
+        <small class="muted">Geciken @Model.OverdueTasksCount görev</small>
     </article>
 </section>
 
+@if (Model.TomorrowTasks.Count > 0 || Model.UnfinishedHabits.Count > 0)
+{
+    <section class="reminder-section">
+        @if (Model.TomorrowTasks.Count > 0)
+        {
+            <div class="reminder-panel reminder-tomorrow">
+                <div class="reminder-header">
+                    <span class="reminder-icon">📅</span>
+                    <strong>Yarın Bitenler</strong>
+                    <span class="pill">@Model.TomorrowTasks.Count görev</span>
+                </div>
+                <div class="reminder-list">
+                    @foreach (var task in Model.TomorrowTasks)
+                    {
+                        <div class="reminder-item">
+                            <span>@task.Title</span>
+                            @if (!string.IsNullOrEmpty(task.Category))
+                            {
+                                <span class="badge">@task.Category</span>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+        @if (Model.UnfinishedHabits.Count > 0)
+        {
+            <div class="reminder-panel reminder-habits">
+                <div class="reminder-header">
+                    <span class="reminder-icon">🔔</span>
+                    <strong>Bugün Tamamlanmayan Alışkanlıklar</strong>
+                    <span class="pill">@Model.UnfinishedHabits.Count alışkanlık</span>
+                </div>
+                <div class="reminder-list">
+                    @foreach (var habit in Model.UnfinishedHabits)
+                    {
+                        <div class="reminder-item">
+                            <span>@habit.Emoji @habit.Name</span>
+                            <span class="muted">🔥 @habit.Streak gün seri</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </section>
+}
+
 <section class="dashboard-grid">
+    <div class="panel">
+        <div class="panel-header">
+            <h2>Bugünün Planı</h2>
+            <span class="pill">@Model.DueTodayTasksCount görev</span>
+        </div>
+        <div class="compact-list">
+            @if (Model.TodayTasks.Count == 0)
+            {
+                <p class="empty-state">Bugün için görev bulunmuyor.</p>
+            }
+            @foreach (var task in Model.TodayTasks)
+            {
+                <div class="compact-item js-hover">
+                    <div>
+                        <span>@task.Title</span>
+                        @if (!string.IsNullOrEmpty(task.Category))
+                        {
+                            <br /><small class="badge" style="margin-top:3px;">@task.Category</small>
+                        }
+                    </div>
+                    <small>@IndexModel.PriorityLabel(task.Priority)</small>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-header">
+            <h2>Geciken Görevler</h2>
+            <span class="pill">@Model.OverdueTasksCount görev</span>
+        </div>
+        <div class="compact-list">
+            @if (Model.OverdueTasks.Count == 0)
+            {
+                <p class="empty-state">Harika! Geciken görev yok. ✅</p>
+            }
+            @foreach (var task in Model.OverdueTasks)
+            {
+                <div class="compact-item js-hover">
+                    <span>@task.Title</span>
+                    <small>Son tarih: @task.DueDate.ToString("dd.MM")</small>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<section class="panel-grid">
     <div class="panel">
         <div class="panel-header">
             <h2>Son Görevler</h2>
@@ -64,7 +168,7 @@
             @foreach (var habit in Model.Habits)
             {
                 <div class="compact-item js-hover">
-                    <span>@habit.Name</span>
+                    <span>@habit.Emoji @habit.Name</span>
                     <small>🔥 @habit.Streak gün</small>
                 </div>
             }

@@ -9,6 +9,11 @@ public class Habit
     [Required, MaxLength(100)]
     public string Name { get; set; } = string.Empty;
 
+    [MaxLength(4)]
+    public string Emoji { get; set; } = "⚡";
+
+    public int FrequencyPerWeek { get; set; } = 7;
+
     public int Streak { get; set; }
 
     public DateOnly? LastCompletedOn { get; set; }

@@ -1,0 +1,204 @@
+@page
+@model StatsModel
+@{
+    ViewData["Title"] = "İstatistikler";
+    var focusJson = System.Text.Json.JsonSerializer.Serialize(Model.WeeklyFocusMinutes);
+    var taskJson = System.Text.Json.JsonSerializer.Serialize(Model.WeeklyCompletedTasks);
+    var labelsJson = System.Text.Json.JsonSerializer.Serialize(Model.WeekDayLabels);
+}
+
+<section class="page-heading">
+    <div>
+        <h1>İstatistikler</h1>
+        <p>Performansını analiz et, gelişimini takip et.</p>
+    </div>
+    <a class="secondary-action" asp-page="/Stats">🔄 Yenile</a>
+</section>
+
+<section class="stat-grid">
+    <article class="metric-card accent-blue js-hover">
+        <span>Toplam Odak</span>
+        <strong>@Model.TotalFocusMinutesAllTime dk</strong>
+        <small class="muted">Tüm zamanlar</small>
+    </article>
+    <article class="metric-card accent-primary js-hover">
+        <span>Tamamlanan Görev</span>
+        <strong>@Model.TotalTasksCompleted</strong>
+        <small class="muted">Toplam</small>
+    </article>
+    <article class="metric-card accent-accent js-hover">
+        <span>En İyi Seri</span>
+        <strong>@Model.BestHabitStreak gün</strong>
+        <small class="muted">Alışkanlık rekoru</small>
+    </article>
+    <article class="metric-card accent-rose js-hover">
+        <span>30 Gün Tamamlama</span>
+        <strong>@Model.TotalHabitCompletions30Days</strong>
+        <small class="muted">Alışkanlık tamamlama</small>
+    </article>
+</section>
+
+<section class="stats-charts-grid">
+    <div class="panel chart-panel">
+        <div class="panel-header">
+            <h2>📊 Son 7 Gün — Odak (dakika)</h2>
+        </div>
+        <div class="chart-container">
+            <canvas id="focusChart"></canvas>
+        </div>
+    </div>
+    <div class="panel chart-panel">
+        <div class="panel-header">
+            <h2>✅ Son 7 Gün — Tamamlanan Görev</h2>
+        </div>
+        <div class="chart-container">
+            <canvas id="taskChart"></canvas>
+        </div>
+    </div>
+</section>
+
+@if (Model.Habits.Count > 0)
+{
+    <section class="panel heatmap-section">
+        <div class="panel-header">
+            <h2>🔥 Alışkanlık Isı Haritası — Son 30 Gün</h2>
+        </div>
+        <div class="heatmap-date-header">
+            <div class="heatmap-name-col"></div>
+            <div class="heatmap-cells-header">
+                @foreach (var day in Model.Last30Days)
+                {
+                    <div class="heatmap-date-label @(day == DateOnly.FromDateTime(DateTime.Today) ? "is-today" : "")">
+                        @if (day.Day == 1 || day == Model.Last30Days.First())
+                        {
+                            <span>@day.ToString("dd MMM")</span>
+                        }
+                        else if ((int)day.DayOfWeek == 1)
+                        {
+                            <span>@day.Day</span>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+        @foreach (var habit in Model.Habits)
+        {
+            var completions = Model.HabitCompletionDays.GetValueOrDefault(habit.Id) ?? new();
+            <div class="heatmap-row">
+                <div class="heatmap-name-col">
+                    <span class="heatmap-emoji">@habit.Emoji</span>
+                    <span class="heatmap-name" title="@habit.Name">@habit.Name</span>
+                </div>
+                <div class="heatmap-cells">
+                    @foreach (var day in Model.Last30Days)
+                    {
+                        var done = completions.Contains(day);
+                        var isToday = day == DateOnly.FromDateTime(DateTime.Today);
+                        <div class="heatmap-cell @(done ? "is-done" : "") @(isToday ? "is-today-cell" : "")"
+                             title="@day.ToString("dd MMM yyyy") — @(done ? "Tamamlandı ✅" : "Tamamlanmadı")">
+                        </div>
+                    }
+                </div>
+                <div class="heatmap-streak">
+                    <span>🔥 @habit.Streak</span>
+                </div>
+            </div>
+        }
+        <div class="heatmap-legend">
+            <span class="muted">Az</span>
+            <div class="heatmap-cell"></div>
+            <div class="heatmap-cell is-done" style="opacity:0.4;"></div>
+            <div class="heatmap-cell is-done" style="opacity:0.7;"></div>
+            <div class="heatmap-cell is-done"></div>
+            <span class="muted">Çok</span>
+        </div>
+    </section>
+}
+else
+{
+    <section class="panel">
+        <p class="empty-state">Henüz alışkanlık yok. Isı haritası için alışkanlık ekle!</p>
+    </section>
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        const focusData = @Html.Raw(focusJson);
+        const taskData = @Html.Raw(taskJson);
+        const labels = @Html.Raw(labelsJson);
+
+        const chartDefaults = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: 'rgba(31,36,51,0.92)',
+                    cornerRadius: 10,
+                    padding: 10,
+                    titleFont: { family: 'Sora, sans-serif', weight: '700' },
+                    bodyFont: { family: 'Source Sans 3, sans-serif' },
+                }
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#6b7280', font: { family: 'Source Sans 3, sans-serif', weight: '600' } },
+                    border: { display: false }
+                },
+                y: {
+                    grid: { color: 'rgba(221,227,234,0.6)', drawTicks: false },
+                    ticks: { color: '#6b7280', font: { family: 'Source Sans 3, sans-serif' } },
+                    border: { display: false }
+                }
+            }
+        };
+
+        new Chart(document.getElementById('focusChart'), {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'Odak (dk)',
+                    data: focusData,
+                    backgroundColor: 'rgba(31,138,112,0.75)',
+                    borderRadius: 10,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                ...chartDefaults,
+                plugins: {
+                    ...chartDefaults.plugins,
+                    tooltip: { ...chartDefaults.plugins.tooltip, callbacks: { label: ctx => ` ${ctx.parsed.y} dakika` } }
+                }
+            }
+        });
+
+        new Chart(document.getElementById('taskChart'), {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'Görev',
+                    data: taskData,
+                    backgroundColor: 'rgba(52,120,246,0.75)',
+                    borderRadius: 10,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                ...chartDefaults,
+                plugins: {
+                    ...chartDefaults.plugins,
+                    tooltip: { ...chartDefaults.plugins.tooltip, callbacks: { label: ctx => ` ${ctx.parsed.y} görev` } }
+                },
+                scales: {
+                    ...chartDefaults.scales,
+                    y: { ...chartDefaults.scales.y, ticks: { ...chartDefaults.scales.y.ticks, stepSize: 1 } }
+                }
+            }
+        });
+    </script>
+}

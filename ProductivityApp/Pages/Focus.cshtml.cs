@@ -15,6 +15,12 @@ public class FocusModel(AppDbContext db) : AppPageModel
 
     public int TodaySessionCount { get; set; }
 
+    public int WeekSessionCount { get; set; }
+
+    public int FocusStreakDays { get; set; }
+
+    public int MaxSessionMinutes { get; set; }
+
     public async Task<IActionResult> OnGetAsync()
     {
         var redirect = RedirectIfAnonymous();
@@ -72,5 +78,39 @@ public class FocusModel(AppDbContext db) : AppPageModel
         WeekFocusedMinutes = await db.FocusSessions
             .Where(session => session.UserId == UserId && session.CompletedAt >= weekStart)
             .SumAsync(session => (int?)session.DurationMinutes) ?? 0;
+
+        WeekSessionCount = await db.FocusSessions
+            .CountAsync(session => session.UserId == UserId && session.CompletedAt >= weekStart);
+
+        MaxSessionMinutes = await db.FocusSessions
+            .Where(session => session.UserId == UserId)
+            .MaxAsync(session => (int?)session.DurationMinutes) ?? 0;
+
+        FocusStreakDays = await CalculateFocusStreakAsync();
+    }
+
+    private async Task<int> CalculateFocusStreakAsync()
+    {
+        var days = await db.FocusSessions
+            .Where(session => session.UserId == UserId)
+            .Select(session => session.CompletedAt)
+            .ToListAsync();
+
+        if (days.Count == 0)
+        {
+            return 0;
+        }
+
+        var daySet = new HashSet<DateOnly>(days.Select(day => DateOnly.FromDateTime(day.ToLocalTime())));
+        var cursor = DateOnly.FromDateTime(DateTime.Today);
+        var streak = 0;
+
+        while (daySet.Contains(cursor))
+        {
+            streak++;
+            cursor = cursor.AddDays(-1);
+        }
+
+        return streak;
     }
 }

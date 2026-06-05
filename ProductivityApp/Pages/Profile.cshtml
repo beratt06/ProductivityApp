@@ -1,0 +1,76 @@
+@page
+@model ProfileModel
+@{
+    ViewData["Title"] = "Profil";
+}
+
+<section class="page-heading">
+    <div>
+        <h1>Profil & Ayarlar</h1>
+        <p>Hesap bilgilerini ve şifreni yönet.</p>
+    </div>
+</section>
+
+@if (!string.IsNullOrEmpty(Model.SuccessMessage))
+{
+    <div class="alert alert-success success-banner">✅ @Model.SuccessMessage</div>
+}
+
+<section class="profile-grid">
+    <div class="panel profile-card">
+        <div class="profile-avatar-section">
+            <div class="profile-avatar">@(Model.CurrentDisplayName.Length > 0 ? Model.CurrentDisplayName[0].ToString().ToUpper() : "?")</div>
+            <div>
+                <div class="profile-name">@Model.CurrentDisplayName</div>
+                <div class="profile-username">@@@Model.CurrentUserName</div>
+                <div class="profile-since muted">Üyelik: @Model.MemberSince.ToString("dd MMMM yyyy")</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel profile-card">
+        <div class="panel-header">
+            <h2>Görünen Adı Değiştir</h2>
+        </div>
+        <form method="post" asp-page-handler="Name" class="stack-form">
+            <div>
+                <label asp-for="NameInput.DisplayName">Görünen ad</label>
+                <input asp-for="NameInput.DisplayName" placeholder="Adınız..." />
+                <span asp-validation-for="NameInput.DisplayName"></span>
+            </div>
+            <button class="primary-action" type="submit">Güncelle</button>
+        </form>
+    </div>
+
+    <div class="panel profile-card">
+        <div class="panel-header">
+            <h2>Şifre Değiştir</h2>
+        </div>
+        @if (!string.IsNullOrEmpty(Model.PwError))
+        {
+            <div class="alert alert-danger error-banner">⚠️ @Model.PwError</div>
+        }
+        <form method="post" asp-page-handler="Password" class="stack-form">
+            <div>
+                <label asp-for="PwInput.CurrentPassword">Mevcut şifre</label>
+                <input asp-for="PwInput.CurrentPassword" type="password" placeholder="••••••••" />
+                <span asp-validation-for="PwInput.CurrentPassword"></span>
+            </div>
+            <div>
+                <label asp-for="PwInput.NewPassword">Yeni şifre</label>
+                <input asp-for="PwInput.NewPassword" type="password" placeholder="En az 6 karakter..." />
+                <span asp-validation-for="PwInput.NewPassword"></span>
+            </div>
+            <div>
+                <label asp-for="PwInput.ConfirmPassword">Yeni şifre tekrar</label>
+                <input asp-for="PwInput.ConfirmPassword" type="password" placeholder="Şifreyi tekrar girin..." />
+                <span asp-validation-for="PwInput.ConfirmPassword"></span>
+            </div>
+            <button class="primary-action" type="submit">Şifreyi Değiştir</button>
+        </form>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

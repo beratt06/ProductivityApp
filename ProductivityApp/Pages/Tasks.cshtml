@@ -2,6 +2,7 @@
 @model TasksModel
 @{
     ViewData["Title"] = "Görevler";
+    var today = DateOnly.FromDateTime(DateTime.Today);
 }
 
 <section class="page-heading">
@@ -10,41 +11,95 @@
         <p>Görevlerini ekle, takip et ve tamamla.</p>
     </div>
     <form method="post" asp-page-handler="Undo">
-        <button class="secondary-action" type="submit" disabled="@(!Model.CanUndo)">Son Silineni Geri Al</button>
+        <button class="secondary-action" type="submit" disabled="@(!Model.CanUndo)">↩ Son Silineni Geri Al</button>
     </form>
 </section>
 
+<section class="stat-grid">
+    <article class="metric-card accent-primary js-hover">
+        <span>Aktif Görev</span>
+        <strong>@Model.Stats.Active</strong>
+        <small class="muted">Toplam @Model.Stats.Total görev</small>
+    </article>
+    <article class="metric-card accent-accent js-hover">
+        <span>Tamamlama Oranı</span>
+        <strong>%@Model.Stats.CompletionRate</strong>
+        <div class="progress-meter" style="--value: @Model.Stats.CompletionRate%;"><span></span></div>
+    </article>
+    <article class="metric-card accent-blue js-hover">
+        <span>Bugün</span>
+        <strong>@Model.Stats.DueToday</strong>
+        <small class="muted">Görev</small>
+    </article>
+    <article class="metric-card accent-rose js-hover">
+        <span>Geciken</span>
+        <strong>@Model.Stats.Overdue</strong>
+        <small class="muted">Görev</small>
+    </article>
+</section>
+
 <section class="panel">
+    <div class="chip-row">
+        <a class="secondary-action @(Model.Due is null && Model.Status is null && Model.Priority is null && string.IsNullOrEmpty(Model.CategoryFilter) ? "is-active" : "")" asp-page="/Tasks">Tümü</a>
+        <a class="secondary-action @(Model.Due == TasksModel.TaskDueFilter.Today ? "is-active" : "")" asp-page="/Tasks" asp-route-Due="@TasksModel.TaskDueFilter.Today">Bugün</a>
+        <a class="secondary-action @(Model.Due == TasksModel.TaskDueFilter.Overdue ? "is-active" : "")" asp-page="/Tasks" asp-route-Due="@TasksModel.TaskDueFilter.Overdue">Geciken</a>
+        <a class="secondary-action @(Model.Status == TaskProgressStatus.Completed ? "is-active" : "")" asp-page="/Tasks" asp-route-Status="@TaskProgressStatus.Completed">Tamamlanan</a>
+        <a class="secondary-action @(Model.Priority == TaskPriority.High ? "is-active" : "")" asp-page="/Tasks" asp-route-Priority="@TaskPriority.High">Yüksek Öncelik</a>
+    </div>
+
     <form method="get" class="filter-bar">
         <input asp-for="Search" data-live-filter-target="#tasksTable" placeholder="Görev ara..." />
+        <select name="CategoryFilter">
+            <option value="">Tüm kategoriler</option>
+            @foreach (var cat in Model.Categories)
+            {
+                <option value="@cat" selected="@(Model.CategoryFilter == cat ? "selected" : null)">@cat</option>
+            }
+        </select>
         <select asp-for="Priority" asp-items="Model.PriorityOptions">
             <option value="">Tüm öncelikler</option>
         </select>
         <select asp-for="Status" asp-items="Model.StatusOptions">
             <option value="">Tüm durumlar</option>
         </select>
+        <select asp-for="Due" asp-items="Model.DueOptions">
+            <option value="">Tüm tarihler</option>
+        </select>
+        <select asp-for="Sort" asp-items="Model.SortOptions">
+            <option value="">Sırala</option>
+        </select>
         <button class="secondary-action" type="submit">Filtrele</button>
     </form>
 
-    <form method="post" asp-page-handler="Add" class="entry-form">
-        <div>
-            <label asp-for="Input.Title">Görev başlığı</label>
-            <input asp-for="Input.Title" placeholder="Örn: Rapor yaz..." />
-            <span asp-validation-for="Input.Title"></span>
+    <form method="post" asp-page-handler="Add" class="add-task-form">
+        <div class="add-task-row">
+            <div>
+                <label asp-for="Input.Title">Görev başlığı *</label>
+                <input asp-for="Input.Title" placeholder="Örn: Rapor yaz..." />
+                <span asp-validation-for="Input.Title"></span>
+            </div>
+            <div>
+                <label asp-for="Input.Category">Kategori</label>
+                <input asp-for="Input.Category" placeholder="Örn: İş, Kişisel..." />
+            </div>
+            <div>
+                <label asp-for="Input.Priority">Öncelik</label>
+                <select asp-for="Input.Priority" asp-items="Model.PriorityOptions"></select>
+            </div>
+            <div>
+                <label asp-for="Input.Status">Durum</label>
+                <select asp-for="Input.Status" asp-items="Model.StatusOptions"></select>
+            </div>
+            <div>
+                <label asp-for="Input.DueDate">Son tarih</label>
+                <input asp-for="Input.DueDate" type="date" />
+            </div>
+            <button class="primary-action" type="submit" style="align-self:end;">Ekle</button>
         </div>
         <div>
-            <label asp-for="Input.Priority">Öncelik</label>
-            <select asp-for="Input.Priority" asp-items="Model.PriorityOptions"></select>
+            <label asp-for="Input.Description">Açıklama (isteğe bağlı)</label>
+            <textarea asp-for="Input.Description" placeholder="Görev hakkında notlar..." rows="2"></textarea>
         </div>
-        <div>
-            <label asp-for="Input.Status">Durum</label>
-            <select asp-for="Input.Status" asp-items="Model.StatusOptions"></select>
-        </div>
-        <div>
-            <label asp-for="Input.DueDate">Son tarih</label>
-            <input asp-for="Input.DueDate" type="date" />
-        </div>
-        <button class="primary-action" type="submit">Görev Ekle</button>
     </form>
 </section>
 
@@ -70,12 +125,46 @@
             @for (var index = 0; index < Model.Tasks.Count; index++)
             {
                 var task = Model.Tasks[index];
+                var isOverdue = task.Status != TaskProgressStatus.Completed && task.DueDate < today;
+                var isToday = task.Status != TaskProgressStatus.Completed && task.DueDate == today;
                 var updateForm = $"update-{task.Id}";
                 var deleteForm = $"delete-{task.Id}";
-                <tr class="js-hover">
+                <tr class="js-hover @(isOverdue ? "row-overdue" : isToday ? "row-highlight" : string.Empty)">
                     <td>@(index + 1)</td>
                     <td>
-                        <input form="@updateForm" name="title" value="@task.Title" />
+                        <div class="row-meta">
+                            <input form="@updateForm" name="title" value="@task.Title" />
+                            @if (!string.IsNullOrEmpty(task.Category))
+                            {
+                                <input form="@updateForm" name="category" value="@task.Category" class="category-input-sm" placeholder="Kategori..." />
+                            }
+                            else
+                            {
+                                <input form="@updateForm" name="category" value="" class="category-input-sm" placeholder="Kategori ekle..." />
+                            }
+                            @if (!string.IsNullOrEmpty(task.Description))
+                            {
+                                <textarea form="@updateForm" name="description" rows="2" class="desc-textarea-sm" placeholder="Açıklama...">@task.Description</textarea>
+                            }
+                            else
+                            {
+                                <textarea form="@updateForm" name="description" rows="2" class="desc-textarea-sm" placeholder="Açıklama ekle..."></textarea>
+                            }
+                            <div class="row-badges">
+                                @if (!string.IsNullOrEmpty(task.Category))
+                                {
+                                    <span class="badge">@task.Category</span>
+                                }
+                                @if (isOverdue)
+                                {
+                                    <span class="badge is-overdue">Gecikti</span>
+                                }
+                                else if (isToday)
+                                {
+                                    <span class="badge is-today">Bugün</span>
+                                }
+                            </div>
+                        </div>
                     </td>
                     <td>
                         <select form="@updateForm" name="priority" asp-items="Model.PriorityOptions" data-selected="@task.Priority"></select>
@@ -87,10 +176,16 @@
                         <input form="@updateForm" name="dueDate" type="date" value="@task.DueDate.ToString("yyyy-MM-dd")" />
                     </td>
                     <td class="row-actions">
-                        <form id="@updateForm" method="post" asp-page-handler="Update">
+                        <form id="@updateForm" method="post" asp-page-handler="Update"
+                              asp-route-Search="@Model.Search" asp-route-Priority="@Model.Priority"
+                              asp-route-Status="@Model.Status" asp-route-Due="@Model.Due"
+                              asp-route-Sort="@Model.Sort" asp-route-CategoryFilter="@Model.CategoryFilter">
                             <input type="hidden" name="id" value="@task.Id" />
                         </form>
-                        <form id="@deleteForm" method="post" asp-page-handler="Delete">
+                        <form id="@deleteForm" method="post" asp-page-handler="Delete"
+                              asp-route-Search="@Model.Search" asp-route-Priority="@Model.Priority"
+                              asp-route-Status="@Model.Status" asp-route-Due="@Model.Due"
+                              asp-route-Sort="@Model.Sort" asp-route-CategoryFilter="@Model.CategoryFilter">
                             <input type="hidden" name="id" value="@task.Id" />
                         </form>
                         <button form="@updateForm" class="icon-button save" type="submit" title="Güncelle">✓</button>
