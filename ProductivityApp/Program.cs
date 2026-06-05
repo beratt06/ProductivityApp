@@ -2,11 +2,13 @@ using Microsoft.EntityFrameworkCore;
 using ProductivityApp.Data;
 using ProductivityApp.Services;
 
+var baseDir = AppContext.BaseDirectory;
+
 var builder = WebApplication.CreateEmptyBuilder(new WebApplicationOptions
 {
     Args = args,
-    ContentRootPath = Directory.GetCurrentDirectory(),
-    WebRootPath = "wwwroot"
+    ContentRootPath = baseDir,
+    WebRootPath = Path.Combine(baseDir, "wwwroot")
 });
 
 builder.WebHost.UseKestrelCore();
@@ -14,7 +16,10 @@ builder.WebHost.UseUrls(Environment.GetEnvironmentVariable("ASPNETCORE_URLS") ??
 
 builder.Services.AddRazorPages();
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite("Data Source=app.db"));
+{
+    var dbPath = Path.Combine(baseDir, "app.db");
+    options.UseSqlite($"Data Source={dbPath}");
+});
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromHours(4);
